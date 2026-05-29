@@ -329,14 +329,14 @@
                 };
 
                 try {
-                    // Usamos no-cors porque Apps Script no devuelve headers CORS por defecto en el modo 'Cualquiera'
+                    // CAMBIO A TEXT/PLAIN PARA EVITAR BLOQUEOS CORS
                     await fetch(WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(payload)
                     });
-                    console.log("Datos despachados a Google Sheets.");
+                    console.log("Datos despachados a Google Sheets exitosamente.");
                 } catch (error) {
                     console.error("Error al despachar a Sheets:", error);
                 } finally {
