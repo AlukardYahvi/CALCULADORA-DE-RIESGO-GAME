@@ -329,14 +329,18 @@
                 };
 
                 try {
-                    // CAMBIO A TEXT/PLAIN PARA EVITAR BLOQUEOS CORS
-                    await fetch(WEB_APP_URL, {
+                    // Solución definitiva para CORS usando fetch estándar. 
+                    // REQUIERE que la función doOptions esté en Apps Script.
+                    const response = await fetch(WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
                         body: JSON.stringify(payload)
                     });
-                    console.log("Datos despachados a Google Sheets exitosamente.");
+                    
+                    const result = await response.json();
+                    console.log("Respuesta de Google Sheets:", result);
                 } catch (error) {
                     console.error("Error al despachar a Sheets:", error);
                 } finally {
