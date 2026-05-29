@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardioRisk Pro - Simulador Clínico Integral</title>
+    <title>Calculadora de Riesgo Cardiometabólico - Edsel Méndez</title>
     
     <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -101,8 +101,8 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- URL WEB APP DE GOOGLE SHEETS ---
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzjWXOiCRJ7nHVz3KaqWQsxl8LE00ZLv6EzIhifjHyaBatCZ-Ifk73ECH8XZncZmQnC/exec";
+        // --- URL WEB APP DE GOOGLE SHEETS ACTUALIZADA ---
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyryKQGcDJazp-eS5eu-JDp6WySxqKkhNq5zOO62pdkBMmJ3mJPg54qZ_s3V9PkGVrijw/exec";
 
         // ==========================================
         // MOTOR DE SONIDO (Web Audio API)
@@ -161,9 +161,9 @@
         // COMPONENTES VISUALES
         // ==========================================
         
-        // Dr. Metric Adorable!
+        // Dr. Metric (¡Ahora más amigable y expresivo!)
         const SVGRobotFriendly = ({ emotion }) => {
-            // Emociones: 'normal', 'thinking', 'success', 'warning'
+            // Emociones: 'normal', 'thinking', 'success', 'warning' (ahora 'preocupado' en vez de 'enojado')
             let color = "#38bdf8"; // Cyan default
             let mouth = "M 40 65 Q 50 75 60 65"; // Sonrisa
             let eyeM = "circle";
@@ -173,9 +173,9 @@
                 mouth = "M 35 60 Q 50 80 65 60"; // Sonrisa grande
                 eyeM = "happy";
             } else if (emotion === 'warning') {
-                color = "#fbbf24"; // Amarillo
-                mouth = "M 45 70 Q 50 65 55 70"; // Preocupado chiquito
-                eyeM = "sad";
+                color = "#fbbf24"; // Amarillo (Mantenemos amarillo de alerta pero menos agresivo)
+                mouth = "M 45 70 Q 50 68 55 70"; // Boca ondulada pequeña
+                eyeM = "worried"; // Nueva mirada de preocupación/empatía
             } else if (emotion === 'thinking') {
                 color = "#a78bfa"; // Morado
                 mouth = "M 40 70 L 60 70"; // Recta
@@ -193,22 +193,23 @@
                     
                     {/* Antena */}
                     <path d="M 50 25 L 50 10" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                    <circle cx="50" cy="8" r="5" fill={emotion === 'warning' ? '#ef4444' : color} className="animate-pulse" />
+                    <circle cx="50" cy="8" r="5" fill={emotion === 'warning' ? '#f59e0b' : color} className="animate-pulse" />
                     
                     {/* Cabeza (Monitor) */}
                     <rect x="15" y="25" width="70" height="60" rx="15" fill="#0f172a" stroke={color} strokeWidth="4" />
                     <rect x="25" y="35" width="50" height="40" rx="8" fill="url(#screenGrad)" stroke="#334155" strokeWidth="2" />
                     
-                    {/* Ojos */}
+                    {/* Ojos expresivos */}
                     {eyeM === 'happy' ? (
                         <g fill="none" stroke={color} strokeWidth="4" strokeLinecap="round">
                             <path d="M 32 48 Q 37 40 42 48" />
                             <path d="M 58 48 Q 63 40 68 48" />
                         </g>
-                    ) : eyeM === 'sad' ? (
+                    ) : eyeM === 'worried' ? (
                         <g fill="none" stroke={color} strokeWidth="4" strokeLinecap="round">
-                            <path d="M 32 45 L 42 48" />
-                            <path d="M 68 45 L 58 48" />
+                            {/* Ojos inclinados hacia el centro (preocupación empática) */}
+                            <path d="M 32 46 Q 37 42 42 45" />
+                            <path d="M 58 45 Q 63 42 68 46" />
                         </g>
                     ) : (
                         <g fill={color}>
@@ -230,10 +231,10 @@
         function CardioGame() {
             // -- ESTADOS DEL JUEGO --
             const [step, setStep] = useState(0); 
-            const [doctorMsg, setDoctorMsg] = useState("¡Hola! Soy Dr. Metric. Te ayudaré a analizar la salud cardiometabólica del paciente de forma rápida y precisa.");
+            const [doctorMsg, setDoctorMsg] = useState("¡Hola! Soy el Dr. Metric. Seré tu asistente virtual. ¡Vamos a analizar juntos el riesgo cardiometabólico de nuestro paciente!");
             const [doctorEmotion, setDoctorEmotion] = useState('normal'); 
             const [showThesisInfo, setShowThesisInfo] = useState(false);
-            const [isSaving, setIsSaving] = useState(false); // Estado para mostrar guardado en Sheets
+            const [isSaving, setIsSaving] = useState(false);
             
             // -- DATOS COMPLETOS --
             const [data, setData] = useState({
@@ -273,7 +274,7 @@
                 const error = validateStep();
                 if (error) {
                     AudioEngine.playError();
-                    setDoctorMsg("¡Faltan datos! " + error);
+                    setDoctorMsg("¡Uy, espera un poquito! " + error + " Por favor, complétalo para que podamos avanzar.");
                     setDoctorEmotion('warning');
                     return;
                 }
@@ -281,13 +282,13 @@
                 AudioEngine.playNext();
                 setDoctorEmotion('normal');
                 
-                if (step === 0) setDoctorMsg("Estación 1: Ingresa los datos del paciente. Si cuentas con datos de bioimpedancia (BIA), puedes añadirlos.");
-                else if (step === 1) setDoctorMsg("Estación 2: Conecta los monitores. Promediaremos las lecturas de presión arterial que proporciones.");
-                else if (step === 2) setDoctorMsg("Estación 3: Transfiere los datos de química sanguínea. ¡La exactitud aquí es vital!");
-                else if (step === 3) setDoctorMsg("Estación 4: Entrevista clínica. Antecedentes, medicación y hábitos del paciente.");
+                if (step === 0) setDoctorMsg("Estación 1: Ingresa los datos personales. Si tienes información de bioimpedancia (BIA), ¡no dudes en incluirla!");
+                else if (step === 1) setDoctorMsg("Estación 2: ¡Vamos con los signos vitales! Anota la presión y yo me encargo de promediarla por ti.");
+                else if (step === 2) setDoctorMsg("Estación 3: Necesito los estudios de laboratorio. ¡Me encantan los números exactos!");
+                else if (step === 3) setDoctorMsg("Estación 4: Para terminar la recolección, registra el estilo de vida y los antecedentes clínicos.");
                 else if (step === 4) {
                     setStep(5);
-                    setDoctorMsg("¡Todo listo! Estoy analizando los biomarcadores con los algoritmos matemáticos...");
+                    setDoctorMsg("¡Bip, bop! Datos recibidos. Déjame encender mis procesadores para calcular los índices de riesgo...");
                     setDoctorEmotion('thinking');
                     processCalculations();
                     return;
@@ -329,18 +330,15 @@
                 };
 
                 try {
-                    // Solución definitiva para CORS usando fetch estándar. 
-                    // REQUIERE que la función doOptions esté en Apps Script.
-                    const response = await fetch(WEB_APP_URL, {
+                    await fetch(WEB_APP_URL, {
                         method: 'POST',
+                        mode: 'no-cors',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload)
                     });
-                    
-                    const result = await response.json();
-                    console.log("Respuesta de Google Sheets:", result);
+                    console.log("Datos despachados a Google Sheets exitosamente.");
                 } catch (error) {
                     console.error("Error al despachar a Sheets:", error);
                 } finally {
@@ -364,19 +362,19 @@
                     // Dispara el envío a Sheets sin bloquear el hilo principal
                     sendToGoogleSheets(data, r);
                     
-                    let sheetMessage = "\n(Datos encriptados y guardados en tu base de datos Sheets ☁️)";
+                    let sheetMessage = "\n(Y no te preocupes, ya he respaldado la información en nuestra base de datos ☁️)";
 
                     if (r.riskProfile.level.includes("ALTO")) {
-                        setDoctorEmotion('warning');
-                        setDoctorMsg("He finalizado el cálculo. El paciente presenta un riesgo preocupante. Mira las recomendaciones." + sheetMessage);
+                        setDoctorEmotion('warning'); // Mostrará la nueva cara preocupada
+                        setDoctorMsg("Análisis finalizado. Hay indicadores de riesgo alto, ¡pero identificarlo es el primer paso! Revisa mi plan de acción para ayudar al paciente." + sheetMessage);
                         AudioEngine.playAlertHigh();
                     } else if (r.riskProfile.level.includes("BAJO")) {
                         setDoctorEmotion('success');
-                        setDoctorMsg("¡Excelentes noticias! El paciente tiene un perfil cardiovascular envidiable. ¡Sigamos cuidándolo!" + sheetMessage);
+                        setDoctorMsg("¡Mis circuitos están felices! El paciente tiene un perfil cardiovascular excelente. ¡Un gran trabajo en su cuidado preventivo!" + sheetMessage);
                         AudioEngine.playSuccess();
                     } else {
                         setDoctorEmotion('normal');
-                        setDoctorMsg("He terminado. Hay áreas de oportunidad para optimizar su salud. Revisemos la tarjeta de resultados." + sheetMessage);
+                        setDoctorMsg("¡Cálculos listos! El perfil es bueno, pero tenemos áreas de oportunidad. Veamos qué podemos optimizar en la tarjeta de resultados." + sheetMessage);
                         AudioEngine.playSuccess();
                     }
                     
@@ -474,7 +472,7 @@
                 let score = 0;
                 let f = []; 
 
-                if (age >= 18) { // Reglas solo para adultos
+                if (age >= 18) { 
                     if ((age >= 45 && d.gender === 'male') || (age >= 55 && d.gender === 'female')) score += 10;
 
                     if (d.history_mi === 'yes') { score += 50; f.push({ text: "Infarto Previo Diagnosticado", class: "risk-high" }); }
@@ -743,9 +741,9 @@
 
                         {/* Globo de diálogo interactivo */}
                         <div className="mt-8 bg-slate-800 border-2 border-slate-600 p-5 rounded-2xl text-sm text-slate-200 text-center shadow-xl relative min-h-[100px] flex items-center justify-center w-full max-w-xs transition-colors duration-300"
-                             style={{ borderColor: doctorEmotion === 'success' ? '#10b981' : doctorEmotion === 'warning' ? '#ef4444' : '#475569' }}>
+                             style={{ borderColor: doctorEmotion === 'success' ? '#10b981' : doctorEmotion === 'warning' ? '#f59e0b' : '#475569' }}>
                             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-b-[14px] border-r-[12px] border-r-transparent" 
-                                 style={{ borderBottomColor: doctorEmotion === 'success' ? '#10b981' : doctorEmotion === 'warning' ? '#ef4444' : '#475569' }}></div>
+                                 style={{ borderBottomColor: doctorEmotion === 'success' ? '#10b981' : doctorEmotion === 'warning' ? '#f59e0b' : '#475569' }}></div>
                             <p className="font-medium leading-relaxed">{doctorMsg}</p>
                         </div>
                     </div>
@@ -771,9 +769,9 @@
                             
                             {step === 0 && (
                                 <div className="text-center animate-fade-in-up">
-                                    <h2 className="text-5xl font-black text-white mb-6">Simulador Clínico</h2>
+                                    <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Calculadora de Riesgo<br/>Cardiometabólico</h2>
                                     <p className="text-slate-400 mb-12 text-lg max-w-xl mx-auto leading-relaxed">
-                                        Calculadora de riesgo cardiometabólico con base en algoritmos integrales. Ingresa los datos solicitados en cada estación.
+                                        Herramienta avanzada para la evaluación del riesgo cardiometabólico. Ingresa los datos solicitados en cada estación.
                                     </p>
                                     <button onClick={nextStep} className="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xl rounded-2xl shadow-[0_0_25px_rgba(37,99,235,0.6)] transition-all transform hover:scale-105 border border-blue-400">
                                         INICIAR EVALUACIÓN
